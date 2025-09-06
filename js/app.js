@@ -104,6 +104,12 @@ function App() {
         }
     };
 
+    // Öncelik istatistikleri
+    const getPriorityStats = () => {
+        const stats = Storage.getTaskCountsByPriority();
+        return stats;
+    };
+
     // Görevleri filtrele ve sırala
     const getFilteredAndSortedTasks = () => {
         let filteredTasks = tasks;
@@ -189,30 +195,52 @@ function App() {
                 )}
             </div>
 
+            <div className="priority-stats">
+                <div className="stats-title">Görev İstatistikleri</div>
+                <div className="stats-grid">
+                    <div className="stat-item stat-high">
+                        <div className="stat-number">{getPriorityStats().high}</div>
+                        <div className="stat-label">Yüksek Öncelik</div>
+                    </div>
+                    <div className="stat-item stat-medium">
+                        <div className="stat-number">{getPriorityStats().medium}</div>
+                        <div className="stat-label">Orta Öncelik</div>
+                    </div>
+                    <div className="stat-item stat-low">
+                        <div className="stat-number">{getPriorityStats().low}</div>
+                        <div className="stat-label">Düşük Öncelik</div>
+                    </div>
+                    <div className="stat-item stat-total">
+                        <div className="stat-number">{getPriorityStats().total}</div>
+                        <div className="stat-label">Toplam Görev</div>
+                    </div>
+                </div>
+            </div>
+
             <div className="filters">
                 <div className="filter-group">
-                    <label htmlFor="filter">Filtrele</label>
+                    <label htmlFor="filter">Öncelik Filtresi</label>
                     <select
                         id="filter"
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
                     >
-                        <option value="all">Tümü</option>
-                        <option value="high">Yüksek Öncelik</option>
-                        <option value="medium">Orta Öncelik</option>
-                        <option value="low">Düşük Öncelik</option>
+                        <option value="all">Tüm Görevler</option>
+                        <option value="high">🔴 Yüksek Öncelik</option>
+                        <option value="medium">🟡 Orta Öncelik</option>
+                        <option value="low">🟢 Düşük Öncelik</option>
                     </select>
                 </div>
                 <div className="filter-group">
-                    <label htmlFor="sort">Sırala</label>
+                    <label htmlFor="sort">Sıralama</label>
                     <select
                         id="sort"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                     >
-                        <option value="priority">Önceliğe Göre</option>
-                        <option value="title">Başlığa Göre</option>
-                        <option value="date">Tarihe Göre</option>
+                        <option value="priority">📊 Önceliğe Göre</option>
+                        <option value="title">🔤 Başlığa Göre</option>
+                        <option value="date">📅 Tarihe Göre</option>
                     </select>
                 </div>
             </div>

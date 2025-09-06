@@ -10,10 +10,10 @@ function TaskItem({ task, onEdit, onDelete }) {
 
     const getPriorityText = (priority) => {
         switch (priority) {
-            case 'high': return 'Yüksek';
-            case 'medium': return 'Orta';
-            case 'low': return 'Düşük';
-            default: return 'Orta';
+            case 'high': return '🔴 Yüksek';
+            case 'medium': return '🟡 Orta';
+            case 'low': return '🟢 Düşük';
+            default: return '🟡 Orta';
         }
     };
 
