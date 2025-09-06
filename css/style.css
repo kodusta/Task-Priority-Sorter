@@ -233,11 +233,19 @@ body {
     color: #555;
 }
 
+.filter-group input,
 .filter-group select {
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
 }
 
 @media (max-width: 768px) {

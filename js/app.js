@@ -9,6 +9,7 @@ function App() {
     });
     const [filter, setFilter] = useState('all');
     const [sortBy, setSortBy] = useState('priority');
+    const [searchTerm, setSearchTerm] = useState('');
     const [editingTask, setEditingTask] = useState(null);
 
     // localStorage'dan görevleri yükle
@@ -110,14 +111,30 @@ function App() {
         return stats;
     };
 
+    // Arama fonksiyonu
+    const searchTasks = (tasks, searchTerm) => {
+        if (!searchTerm.trim()) return tasks;
+        
+        const term = searchTerm.toLowerCase();
+        return tasks.filter(task => 
+            task.title.toLowerCase().includes(term) ||
+            task.description.toLowerCase().includes(term)
+        );
+    };
+
     // Görevleri filtrele ve sırala
     const getFilteredAndSortedTasks = () => {
         let filteredTasks = tasks;
         
+        // Öncelik filtresi
         if (filter !== 'all') {
             filteredTasks = tasks.filter(task => task.priority === filter);
         }
         
+        // Arama filtresi
+        filteredTasks = searchTasks(filteredTasks, searchTerm);
+        
+        // Sıralama
         return filteredTasks.sort((a, b) => {
             switch (sortBy) {
                 case 'priority':
@@ -131,6 +148,13 @@ function App() {
                     return 0;
             }
         });
+    };
+
+    // Filtreleri temizle
+    const clearFilters = () => {
+        setFilter('all');
+        setSearchTerm('');
+        setSortBy('priority');
     };
 
     return (
@@ -219,6 +243,16 @@ function App() {
 
             <div className="filters">
                 <div className="filter-group">
+                    <label htmlFor="search">🔍 Arama</label>
+                    <input
+                        type="text"
+                        id="search"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Görev başlığı veya açıklamasında ara..."
+                    />
+                </div>
+                <div className="filter-group">
                     <label htmlFor="filter">Öncelik Filtresi</label>
                     <select
                         id="filter"
@@ -243,12 +277,39 @@ function App() {
                         <option value="date">📅 Tarihe Göre</option>
                     </select>
                 </div>
+                <div className="filter-group">
+                    <label>&nbsp;</label>
+                    <button 
+                        className="btn" 
+                        onClick={clearFilters}
+                        style={{ backgroundColor: '#95a5a6' }}
+                    >
+                        🗑️ Temizle
+                    </button>
+                </div>
             </div>
+
+            {(searchTerm || filter !== 'all') && (
+                <div style={{ 
+                    background: '#e8f4f8', 
+                    padding: '10px 15px', 
+                    borderRadius: '4px', 
+                    marginBottom: '20px',
+                    border: '1px solid #bee5eb',
+                    color: '#0c5460'
+                }}>
+                    <strong>Filtreleme Aktif:</strong> {getFilteredAndSortedTasks().length} görev bulundu
+                    {searchTerm && ` (arama: "${searchTerm}")`}
+                    {filter !== 'all' && ` (öncelik: ${filter})`}
+                </div>
+            )}
 
             <TaskList 
                 tasks={getFilteredAndSortedTasks()}
                 onEdit={editTask}
                 onDelete={deleteTask}
+                searchTerm={searchTerm}
+                filter={filter}
             />
         </div>
     );
