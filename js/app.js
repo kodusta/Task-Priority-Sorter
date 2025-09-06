@@ -9,6 +9,7 @@ function App() {
     });
     const [filter, setFilter] = useState('all');
     const [sortBy, setSortBy] = useState('priority');
+    const [editingTask, setEditingTask] = useState(null);
 
     // localStorage'dan görevleri yükle
     useEffect(() => {
@@ -23,6 +24,72 @@ function App() {
         localStorage.setItem('tasks', JSON.stringify(tasks));
     }, [tasks]);
 
+    // Görev ekleme
+    const addTask = () => {
+        if (!newTask.title.trim()) return;
+        
+        const task = {
+            id: Date.now(),
+            ...newTask,
+            createdAt: new Date().toISOString()
+        };
+        
+        setTasks([...tasks, task]);
+        setNewTask({ title: '', description: '', priority: 'medium' });
+    };
+
+    // Görev düzenleme
+    const editTask = (task) => {
+        setEditingTask(task);
+        setNewTask({
+            title: task.title,
+            description: task.description,
+            priority: task.priority
+        });
+    };
+
+    // Görev güncelleme
+    const updateTask = () => {
+        if (!newTask.title.trim()) return;
+        
+        setTasks(tasks.map(task => 
+            task.id === editingTask.id 
+                ? { ...task, ...newTask }
+                : task
+        ));
+        
+        setEditingTask(null);
+        setNewTask({ title: '', description: '', priority: 'medium' });
+    };
+
+    // Görev silme
+    const deleteTask = (taskId) => {
+        setTasks(tasks.filter(task => task.id !== taskId));
+    };
+
+    // Görevleri filtrele ve sırala
+    const getFilteredAndSortedTasks = () => {
+        let filteredTasks = tasks;
+        
+        if (filter !== 'all') {
+            filteredTasks = tasks.filter(task => task.priority === filter);
+        }
+        
+        return filteredTasks.sort((a, b) => {
+            switch (sortBy) {
+                case 'priority':
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    return priorityOrder[b.priority] - priorityOrder[a.priority];
+                case 'title':
+                    return a.title.localeCompare(b.title);
+                case 'date':
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                default:
+                    return 0;
+            }
+        });
+    };
+
     return (
         <div className="container">
             <div className="header">
@@ -31,7 +98,7 @@ function App() {
             </div>
 
             <div className="task-form">
-                <h2>Yeni Görev Ekle</h2>
+                <h2>{editingTask ? 'Görev Düzenle' : 'Yeni Görev Ekle'}</h2>
                 <div className="form-group">
                     <label htmlFor="title">Görev Başlığı</label>
                     <input
@@ -64,9 +131,24 @@ function App() {
                         <option value="high">Yüksek</option>
                     </select>
                 </div>
-                <button className="btn" onClick={() => {}}>
-                    Görev Ekle
+                <button 
+                    className="btn" 
+                    onClick={editingTask ? updateTask : addTask}
+                >
+                    {editingTask ? 'Güncelle' : 'Görev Ekle'}
                 </button>
+                {editingTask && (
+                    <button 
+                        className="btn" 
+                        onClick={() => {
+                            setEditingTask(null);
+                            setNewTask({ title: '', description: '', priority: 'medium' });
+                        }}
+                        style={{ marginLeft: '10px', backgroundColor: '#95a5a6' }}
+                    >
+                        İptal
+                    </button>
+                )}
             </div>
 
             <div className="filters">
@@ -97,19 +179,11 @@ function App() {
                 </div>
             </div>
 
-            <div className="task-list">
-                <div className="task-item">
-                    <div className="task-content">
-                        <div className="task-title">Örnek Görev</div>
-                        <div className="task-description">Bu bir örnek görevdir</div>
-                    </div>
-                    <div className="priority priority-medium">Orta</div>
-                    <div className="task-actions">
-                        <button className="btn btn-edit">Düzenle</button>
-                        <button className="btn btn-delete">Sil</button>
-                    </div>
-                </div>
-            </div>
+            <TaskList 
+                tasks={getFilteredAndSortedTasks()}
+                onEdit={editTask}
+                onDelete={deleteTask}
+            />
         </div>
     );
 }
