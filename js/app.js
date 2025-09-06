@@ -13,24 +13,41 @@ function App() {
 
     // localStorage'dan görevleri yükle
     useEffect(() => {
-        const savedTasks = localStorage.getItem('tasks');
-        if (savedTasks) {
-            setTasks(JSON.parse(savedTasks));
-        }
+        const savedTasks = Storage.loadTasks();
+        setTasks(savedTasks);
     }, []);
 
     // Görevleri localStorage'a kaydet
     useEffect(() => {
-        localStorage.setItem('tasks', JSON.stringify(tasks));
+        Storage.saveTasks(tasks);
     }, [tasks]);
+
+    // Form validasyonu
+    const validateTask = (task) => {
+        if (!task.title.trim()) {
+            alert('Görev başlığı boş olamaz!');
+            return false;
+        }
+        if (task.title.length > 100) {
+            alert('Görev başlığı 100 karakterden uzun olamaz!');
+            return false;
+        }
+        if (task.description.length > 500) {
+            alert('Görev açıklaması 500 karakterden uzun olamaz!');
+            return false;
+        }
+        return true;
+    };
 
     // Görev ekleme
     const addTask = () => {
-        if (!newTask.title.trim()) return;
+        if (!validateTask(newTask)) return;
         
         const task = {
             id: Date.now(),
-            ...newTask,
+            title: newTask.title.trim(),
+            description: newTask.description.trim(),
+            priority: newTask.priority,
             createdAt: new Date().toISOString()
         };
         
@@ -50,11 +67,17 @@ function App() {
 
     // Görev güncelleme
     const updateTask = () => {
-        if (!newTask.title.trim()) return;
+        if (!validateTask(newTask)) return;
         
         setTasks(tasks.map(task => 
             task.id === editingTask.id 
-                ? { ...task, ...newTask }
+                ? { 
+                    ...task, 
+                    title: newTask.title.trim(),
+                    description: newTask.description.trim(),
+                    priority: newTask.priority,
+                    updatedAt: new Date().toISOString()
+                }
                 : task
         ));
         
@@ -64,7 +87,21 @@ function App() {
 
     // Görev silme
     const deleteTask = (taskId) => {
-        setTasks(tasks.filter(task => task.id !== taskId));
+        const task = tasks.find(t => t.id === taskId);
+        if (task && confirm(`"${task.title}" görevini silmek istediğinizden emin misiniz?`)) {
+            setTasks(tasks.filter(task => task.id !== taskId));
+        }
+    };
+
+    // Enter tuşu ile görev ekleme
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            if (editingTask) {
+                updateTask();
+            } else {
+                addTask();
+            }
+        }
     };
 
     // Görevleri filtrele ve sırala
@@ -106,6 +143,7 @@ function App() {
                         id="title"
                         value={newTask.title}
                         onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                        onKeyPress={handleKeyPress}
                         placeholder="Görev başlığını girin"
                     />
                 </div>
