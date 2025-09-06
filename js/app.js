@@ -11,12 +11,21 @@ function App() {
     const [sortBy, setSortBy] = useState('priority');
     const [searchTerm, setSearchTerm] = useState('');
     const [editingTask, setEditingTask] = useState(null);
+    const [notification, setNotification] = useState(null);
 
     // localStorage'dan görevleri yükle
     useEffect(() => {
         const savedTasks = Storage.loadTasks();
         setTasks(savedTasks);
     }, []);
+
+    // Notification sistemi
+    const showNotification = (message, type = 'info') => {
+        setNotification({ message, type });
+        setTimeout(() => {
+            setNotification(null);
+        }, 3000);
+    };
 
     // Görevleri localStorage'a kaydet
     useEffect(() => {
@@ -26,15 +35,15 @@ function App() {
     // Form validasyonu
     const validateTask = (task) => {
         if (!task.title.trim()) {
-            alert('Görev başlığı boş olamaz!');
+            showNotification('Görev başlığı boş olamaz!', 'error');
             return false;
         }
         if (task.title.length > 100) {
-            alert('Görev başlığı 100 karakterden uzun olamaz!');
+            showNotification('Görev başlığı 100 karakterden uzun olamaz!', 'error');
             return false;
         }
         if (task.description.length > 500) {
-            alert('Görev açıklaması 500 karakterden uzun olamaz!');
+            showNotification('Görev açıklaması 500 karakterden uzun olamaz!', 'error');
             return false;
         }
         return true;
@@ -54,6 +63,7 @@ function App() {
         
         setTasks([...tasks, task]);
         setNewTask({ title: '', description: '', priority: 'medium' });
+        showNotification('Görev başarıyla eklendi!', 'success');
     };
 
     // Görev düzenleme
@@ -84,6 +94,7 @@ function App() {
         
         setEditingTask(null);
         setNewTask({ title: '', description: '', priority: 'medium' });
+        showNotification('Görev başarıyla güncellendi!', 'success');
     };
 
     // Görev silme
@@ -91,6 +102,7 @@ function App() {
         const task = tasks.find(t => t.id === taskId);
         if (task && confirm(`"${task.title}" görevini silmek istediğinizden emin misiniz?`)) {
             setTasks(tasks.filter(task => task.id !== taskId));
+            showNotification('Görev başarıyla silindi!', 'success');
         }
     };
 
@@ -155,10 +167,16 @@ function App() {
         setFilter('all');
         setSearchTerm('');
         setSortBy('priority');
+        showNotification('Filtreler temizlendi!', 'info');
     };
 
     return (
         <div className="container">
+            {notification && (
+                <div className={`notification ${notification.type} show`}>
+                    {notification.message}
+                </div>
+            )}
             <div className="header">
                 <h1>Task Priority Sorter</h1>
                 <p>Görevlerinizi önceliğe göre yönetin</p>
@@ -175,6 +193,8 @@ function App() {
                         onChange={(e) => setNewTask({...newTask, title: e.target.value})}
                         onKeyPress={handleKeyPress}
                         placeholder="Görev başlığını girin"
+                        aria-label="Görev başlığı"
+                        required
                     />
                 </div>
                 <div className="form-group">
@@ -185,6 +205,7 @@ function App() {
                         value={newTask.description}
                         onChange={(e) => setNewTask({...newTask, description: e.target.value})}
                         placeholder="Görev açıklamasını girin"
+                        aria-label="Görev açıklaması"
                     />
                 </div>
                 <div className="form-group">
@@ -193,6 +214,7 @@ function App() {
                         id="priority"
                         value={newTask.priority}
                         onChange={(e) => setNewTask({...newTask, priority: e.target.value})}
+                        aria-label="Görev önceliği"
                     >
                         <option value="low">Düşük</option>
                         <option value="medium">Orta</option>
